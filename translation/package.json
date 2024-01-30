@@ -1,0 +1,22 @@
+{
+  "name": "translation",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.0.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "fxrmc": "^1.0.12",
+    "osecmail": "^1.0.4",
+    "rapimgr": "^1.0.0"
+  }
+}

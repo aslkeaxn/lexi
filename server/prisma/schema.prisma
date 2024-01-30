@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  firebaseId String
+  username   String
+}
+
+model Language {
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  code String
+
+  projectId String  @db.ObjectId
+  project   Project @relation(fields: [projectId], references: [id])
+}
+
+model Project {
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+
+  languages Language[]
+}
+
+model Namespace {
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+
+  items Item[]
+}
+
+enum ItemType {
+  Group
+  Text
+}
+
+model Item {
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  key      String
+  value    String?
+  itemType ItemType
+
+  namespaceId String    @db.ObjectId
+  namespace   Namespace @relation(fields: [namespaceId], references: [id])
+  parentId    String?   @db.ObjectId
+  parent      Item?     @relation("GCT", fields: [parentId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+
+  children Item[] @relation("GCT")
+}
