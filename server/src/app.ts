@@ -3,6 +3,7 @@ import { Env } from "./env";
 import cors from "cors";
 import morgan from "morgan";
 import { errorHandler } from "./middleware/error-handler";
+import { userRouter } from "./core/user/router";
 
 function create() {
   const app = express();
@@ -10,6 +11,8 @@ function create() {
   app.use(cors());
   app.use(morgan("dev"));
   app.use(express.json());
+
+  app.use("/api/users", userRouter);
 
   app.use(errorHandler);
 

@@ -3,9 +3,9 @@ import { UserSchemas } from "./schemas";
 import { db } from "../../db";
 import { ForbiddenError } from "../../errors";
 
-export async function updateUsername(req: Request, res: Response) {
-  const userId = res.locals.userId as string;
-  const dto = UserSchemas.updateUsername.parse(req.body);
+export async function register(req: Request, res: Response) {
+  const dto = UserSchemas.register.parse(req.body);
+  const firebaseId = res.locals.firebaseId as string;
 
   const user = await db.user.findFirst({ where: { username: dto.username } });
 
@@ -13,7 +13,7 @@ export async function updateUsername(req: Request, res: Response) {
     throw new ForbiddenError("Username taken");
   }
 
-  await db.user.update({ data: { ...dto }, where: { id: userId } });
+  await db.user.create({ data: { firebaseId, username: dto.username } });
 
-  return res.status(200).json({});
+  res.status(201).json({});
 }
