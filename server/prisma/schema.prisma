@@ -11,6 +11,8 @@ model User {
   id         String @id @default(auto()) @map("_id") @db.ObjectId
   firebaseId String
   username   String
+
+  projects Project[]
 }
 
 model Language {
@@ -18,15 +20,26 @@ model Language {
   name String
   code String
 
-  projectId String  @db.ObjectId
-  project   Project @relation(fields: [projectId], references: [id])
+  languageProjects ProjectLanguage[]
 }
 
 model Project {
   id   String @id @default(auto()) @map("_id") @db.ObjectId
   name String
 
-  languages Language[]
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id])
+
+  projectLanguages ProjectLanguage[]
+}
+
+model ProjectLanguage {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  languageId String   @db.ObjectId
+  language   Language @relation(fields: [languageId], references: [id])
+  projectId  String   @db.ObjectId
+  project    Project  @relation(fields: [projectId], references: [id])
 }
 
 model Namespace {

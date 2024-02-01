@@ -4,6 +4,7 @@ import cors from "cors";
 import morgan from "morgan";
 import { errorHandler } from "./middleware/error-handler";
 import { userRouter } from "./core/user/router";
+import { projectRouter } from "./core/project/router";
 
 function create() {
   const app = express();
@@ -13,6 +14,7 @@ function create() {
   app.use(express.json());
 
   app.use("/api/users", userRouter);
+  app.use("/api/projects", projectRouter);
 
   app.use(errorHandler);
 
