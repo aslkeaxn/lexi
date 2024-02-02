@@ -6,6 +6,7 @@ import { errorHandler } from "./middleware/error-handler";
 import { TDatabase } from "./db";
 import { constant } from "./constant";
 import { createUserRouter } from "./core/user/router";
+import { createProjectRouter } from "./core/project/router";
 
 export function createApp(db: TDatabase) {
   const app = express();
@@ -15,6 +16,7 @@ export function createApp(db: TDatabase) {
   app.use(express.json());
 
   app.use(constant.userRoute, createUserRouter(db));
+  app.use(constant.projectRoute, createProjectRouter(db));
 
   app.use(errorHandler);
 

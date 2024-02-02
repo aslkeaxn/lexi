@@ -5,7 +5,7 @@ export function testDb(fn: (tx: TDatabase) => Promise<unknown>) {
   return async function () {
     try {
       await db.$transaction(async (tx) => {
-        await fn(tx);
+        await fn({ ...tx, isTransaction: true });
         throw new TestTransactionError();
       });
     } catch (error) {

@@ -4,11 +4,13 @@ import { env } from "./env";
 
 export const db = new PrismaClient({ datasourceUrl: env.DATABASE_URL });
 
-type TDb = typeof db;
+type TDb = typeof db & { isTransaction: false };
 
-type TTransaction = Omit<
+export type TTransaction = Omit<
   PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
   "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
 >;
 
-export type TDatabase = TDb | TTransaction;
+export type TAugmentedTransaction = TTransaction & { isTransaction: true };
+
+export type TDatabase = TDb | TAugmentedTransaction;
