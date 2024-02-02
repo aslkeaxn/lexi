@@ -7,7 +7,10 @@ import { register } from "./register";
 export function createUserRouter(db: TDatabase) {
   const router = Router();
 
-  router.post("/", asyncHandlerDb(db, isAuth, register));
+  router.post(
+    "/",
+    asyncHandlerDb(db, (db: TDatabase) => isAuth(db, false), register)
+  );
 
   return router;
 }

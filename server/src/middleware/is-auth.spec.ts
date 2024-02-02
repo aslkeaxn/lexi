@@ -10,7 +10,11 @@ describe.concurrent("isAuth middleware", () => {
   it(
     "Should call next if requireAccount is true and the user has an account",
     testDb(async (tx) => {
-      const { user, authorization } = await createUser(tx, "username", 1);
+      const { firebaseUser, user, authorization } = await createUser(
+        tx,
+        "username",
+        1
+      );
       const req = { headers: { authorization } } as Request;
       const res = { locals: {} } as Response;
       const next = vi.fn();
@@ -20,6 +24,7 @@ describe.concurrent("isAuth middleware", () => {
       expect(next).toHaveBeenCalledTimes(1);
       expect(res.locals.user).toEqual(user);
       expect(res.locals.userId).toBe(user.id);
+      expect(res.locals.firebaseId).toBe(firebaseUser.uid);
     }),
     20000
   );
@@ -27,7 +32,7 @@ describe.concurrent("isAuth middleware", () => {
   it(
     "Should call next if requireAccount is false and the user doesn't have an account",
     testDb(async (tx) => {
-      const { idToken } = await getTestUser(1);
+      const { firebaseUser, idToken } = await getTestUser(1);
       const authorization = `Bearer ${idToken}`;
       const req = { headers: { authorization } } as Request;
       const res = { locals: {} } as Response;
@@ -38,6 +43,7 @@ describe.concurrent("isAuth middleware", () => {
       expect(next).toHaveBeenCalledTimes(1);
       expect(res.locals.user).toBeUndefined();
       expect(res.locals.userId).toBeUndefined();
+      expect(res.locals.firebaseId).toBe(firebaseUser.uid);
     }),
     20000
   );
@@ -58,6 +64,7 @@ describe.concurrent("isAuth middleware", () => {
         expect(next).toHaveBeenCalledTimes(0);
         expect(res.locals.user).toBeUndefined();
         expect(res.locals.userId).toBeUndefined();
+        expect(res.locals.firebaseId).toBeUndefined();
       })();
     },
     20000
@@ -79,6 +86,7 @@ describe.concurrent("isAuth middleware", () => {
       expect(next).toHaveBeenCalledTimes(0);
       expect(res.locals.user).toBeUndefined();
       expect(res.locals.userId).toBeUndefined();
+      expect(res.locals.firebaseId).toBeUndefined();
     }),
     20000
   );
@@ -98,6 +106,7 @@ describe.concurrent("isAuth middleware", () => {
       expect(next).toHaveBeenCalledTimes(0);
       expect(res.locals.user).toBeUndefined();
       expect(res.locals.userId).toBeUndefined();
+      expect(res.locals.firebaseId).toBeUndefined();
     }),
     20000
   );

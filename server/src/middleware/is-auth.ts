@@ -30,6 +30,8 @@ export function isAuth(db: TDatabase, requireAccount: boolean = true) {
       }
     }
 
+    res.locals.firebaseId = decodedIdToken.uid;
+
     next();
   };
 }
