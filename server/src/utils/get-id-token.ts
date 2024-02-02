@@ -1,7 +1,7 @@
-import { Env } from "../env";
+import { env } from "../env";
 
 export async function getIdToken(token: string) {
-  const apiKey = Env.FIREBASE_API_KEY;
+  const apiKey = env.FIREBASE_API_KEY;
   const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${apiKey}`;
   const res = await fetch(url, {
     method: "POST",

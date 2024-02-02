@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import { ForbiddenError, UnauthorizedError } from "../errors";
-import { Firebase } from "../firebase";
-import { db } from "../db";
+import { TDatabase } from "../db";
+import { UnauthorizedError } from "../errors";
+import { firebase } from "../firebase";
 
-export function isAuth(requireAccount: boolean = true) {
+export function isAuth(db: TDatabase, requireAccount: boolean = true) {
   return async function (req: Request, res: Response, next: NextFunction) {
     const authorization = req.headers.authorization;
 
@@ -11,38 +11,25 @@ export function isAuth(requireAccount: boolean = true) {
       throw new UnauthorizedError();
     }
 
-    try {
-      const idToken = authorization.split("Bearer ")[1];
-      const decodedToken = await Firebase.auth.verifyIdToken(idToken);
-      const user = await db.user.findFirst({
-        where: { firebaseId: decodedToken.uid },
-      });
+    const idToken = authorization.split("Bearer ")[1];
+    const decodedIdToken = await firebase.auth.verifyIdToken(idToken);
+    const user = await db.user.findFirst({
+      where: { firebaseId: decodedIdToken.uid },
+    });
 
-      if (requireAccount) {
-        if (!user) {
-          throw new UnauthorizedError();
-        }
-
-        res.locals.user = user;
-        res.locals.userId = user.id;
-      } else {
-        if (user) {
-          throw new ForbiddenError();
-        }
+    if (requireAccount) {
+      if (!user) {
+        throw new UnauthorizedError();
       }
 
-      res.locals.firebaseId = decodedToken.uid;
-      next();
-    } catch (error) {
-      if (
-        error instanceof UnauthorizedError ||
-        error instanceof ForbiddenError
-      ) {
-        throw error;
+      res.locals.user = user;
+      res.locals.userId = user.id;
+    } else {
+      if (user) {
+        throw new UnauthorizedError();
       }
-
-      console.error("\n", error, "\n");
-      throw new UnauthorizedError();
     }
+
+    next();
   };
 }

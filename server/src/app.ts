@@ -1,31 +1,29 @@
 import express from "express";
-import { Env } from "./env";
+import { env } from "./env";
 import cors from "cors";
 import morgan from "morgan";
 import { errorHandler } from "./middleware/error-handler";
-import { userRouter } from "./core/user/router";
-import { projectRouter } from "./core/project/router";
+import { TDatabase } from "./db";
+import { constant } from "./constant";
+import { createUserRouter } from "./core/user/router";
 
-function create() {
+export function createApp(db: TDatabase) {
   const app = express();
 
   app.use(cors());
   app.use(morgan("dev"));
   app.use(express.json());
 
-  app.use("/api/users", userRouter);
-  app.use("/api/projects", projectRouter);
+  app.use(constant.userRoute, createUserRouter(db));
 
   app.use(errorHandler);
 
   return app;
 }
 
-function start() {
-  const app = create();
-  app.listen(Env.PORT, () => {
-    console.log("Server listening at port", Env.PORT);
+export function startApp(db: TDatabase) {
+  const app = createApp(db);
+  app.listen(env.PORT, () => {
+    console.log("Server listening at port", env.PORT);
   });
 }
-
-export const App = { create, start };

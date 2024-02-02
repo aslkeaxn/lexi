@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import { TDatabase } from "../db";
 
 type THandler = (req: Request, res: Response) => Promise<unknown>;
 
@@ -18,4 +19,10 @@ export function asyncHandler(...fns: (THandler | TMiddleware)[]) {
       }
     };
   });
+}
+
+type TDBHM = (db: TDatabase) => THandler | TMiddleware;
+
+export function asyncHandlerDb(db: TDatabase, ...fns: TDBHM[]) {
+  return asyncHandler(...fns.map((fn) => fn(db)));
 }

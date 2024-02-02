@@ -1,51 +1,104 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { clearDatabase } from "../utils/clear-database";
+import { describe, expect, it, vi } from "vitest";
+import { createUser } from "../utils/create-user";
 import { Request, Response } from "express";
 import { isAuth } from "./is-auth";
-import { ForbiddenError, UnauthorizedError } from "../errors";
 import { getTestUser } from "../utils/get-test-user";
-import { db } from "../db";
+import { testDb } from "../utils/test-db";
+import { UnauthorizedError } from "../errors";
 
-describe("isAuth middleware", () => {
-  beforeEach(async () => {
-    await clearDatabase();
-  });
+describe.concurrent("isAuth middleware", () => {
+  it(
+    "Should call next if requireAccount is true and the user has an account",
+    testDb(async (tx) => {
+      const { user, authorization } = await createUser(tx, "username", 1);
+      const req = { headers: { authorization } } as Request;
+      const res = { locals: {} } as Response;
+      const next = vi.fn();
 
-  it("Should throw UnauthorizedError if the authorization header is invalid", async () => {
-    const req = { headers: { authorization: "" } } as Request;
-    const res = {} as Response;
-    const next = vi.fn();
+      await isAuth(tx)(req, res, next);
 
-    await expect(() => isAuth()(req, res, next)).rejects.toThrowError(
-      UnauthorizedError
-    );
-  });
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(res.locals.user).toEqual(user);
+      expect(res.locals.userId).toBe(user.id);
+    }),
+    20000
+  );
 
-  it("Should throw UnauthorizedError if requireAccount is true and the token is not associated with a user", async () => {
-    const { idToken } = await getTestUser();
-    const req = { headers: { authorization: `Bearer ${idToken}` } } as Request;
-    const res = { locals: {} } as Response;
-    const next = vi.fn();
+  it(
+    "Should call next if requireAccount is false and the user doesn't have an account",
+    testDb(async (tx) => {
+      const { idToken } = await getTestUser(1);
+      const authorization = `Bearer ${idToken}`;
+      const req = { headers: { authorization } } as Request;
+      const res = { locals: {} } as Response;
+      const next = vi.fn();
 
-    await expect(() => isAuth()(req, res, next)).rejects.toThrowError(
-      UnauthorizedError
-    );
-    expect(next).toBeCalledTimes(0);
-  }, 10000);
+      await isAuth(tx, false)(req, res, next);
 
-  it("Should throw ForbiddenError if requireAccount is false and the token is associated with a user", async () => {
-    const { firebaseUser, idToken } = await getTestUser();
-    await db.user.create({
-      data: { username: "username", firebaseId: firebaseUser.uid },
-    });
+      expect(next).toHaveBeenCalledTimes(1);
+      expect(res.locals.user).toBeUndefined();
+      expect(res.locals.userId).toBeUndefined();
+    }),
+    20000
+  );
 
-    const req = { headers: { authorization: `Bearer ${idToken}` } } as Request;
-    const res = { locals: {} } as Response;
-    const next = vi.fn();
+  it.each([true, false])(
+    "Should throw an UnauthorizedError if the authorization header is invalid",
+    async (requireAccount) => {
+      await testDb(async (tx) => {
+        const authorization = "this could be made better, i guess";
+        const req = { headers: { authorization } } as Request;
+        const res = { locals: {} } as Response;
+        const next = vi.fn();
 
-    await expect(() => isAuth(false)(req, res, next)).rejects.toThrowError(
-      ForbiddenError
-    );
-    expect(next).toBeCalledTimes(0);
-  }, 10000);
+        await expect(() =>
+          isAuth(tx, requireAccount)(req, res, next)
+        ).rejects.toThrow(UnauthorizedError);
+
+        expect(next).toHaveBeenCalledTimes(0);
+        expect(res.locals.user).toBeUndefined();
+        expect(res.locals.userId).toBeUndefined();
+      })();
+    },
+    20000
+  );
+
+  it(
+    "Should throw an UnauthorizedError if requireAccount is true and the user doesn't have an account",
+    testDb(async (tx) => {
+      const { idToken } = await getTestUser(1);
+      const authorization = `Bearer ${idToken}`;
+      const req = { headers: { authorization } } as Request;
+      const res = { locals: {} } as Response;
+      const next = vi.fn();
+
+      await expect(() => isAuth(tx)(req, res, next)).rejects.toThrow(
+        UnauthorizedError
+      );
+
+      expect(next).toHaveBeenCalledTimes(0);
+      expect(res.locals.user).toBeUndefined();
+      expect(res.locals.userId).toBeUndefined();
+    }),
+    20000
+  );
+
+  it(
+    "Should throw an UnauthorizedError if requireAccount is false and the user has an account",
+    testDb(async (tx) => {
+      const { authorization } = await createUser(tx, "username", 1);
+      const req = { headers: { authorization } } as Request;
+      const res = { locals: {} } as Response;
+      const next = vi.fn();
+
+      await expect(() => isAuth(tx, false)(req, res, next)).rejects.toThrow(
+        UnauthorizedError
+      );
+
+      expect(next).toHaveBeenCalledTimes(0);
+      expect(res.locals.user).toBeUndefined();
+      expect(res.locals.userId).toBeUndefined();
+    }),
+    20000
+  );
 });

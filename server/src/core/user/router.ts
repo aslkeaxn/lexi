@@ -1,11 +1,13 @@
 import { Router } from "express";
+import { TDatabase } from "../../db";
+import { asyncHandlerDb } from "../../lib/async-handler";
 import { isAuth } from "../../middleware/is-auth";
-import { asyncHandler } from "../../lib/async-handler";
-import { register } from "./c.register";
-import { updateUsername } from "./c.update-username";
+import { register } from "./register";
 
-export const userRouter = Router();
+export function createUserRouter(db: TDatabase) {
+  const router = Router();
 
-userRouter.post("/", asyncHandler(isAuth(false), register));
+  router.post("/", asyncHandlerDb(db, isAuth, register));
 
-userRouter.post("/username", asyncHandler(isAuth(), updateUsername));
+  return router;
+}

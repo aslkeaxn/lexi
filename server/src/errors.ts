@@ -18,3 +18,9 @@ export class ForbiddenError extends HttpError {
     super(403, message);
   }
 }
+
+export class TestTransactionError extends Error {
+  constructor() {
+    super();
+  }
+}

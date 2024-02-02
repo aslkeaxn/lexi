@@ -19,7 +19,7 @@ const FIREBASE_PRIVATE_KEY = readEnv("FIREBASE_PRIVATE_KEY");
 const FIREBASE_PROJECT_ID = readEnv("FIREBASE_PROJECT_ID");
 const FIREBASE_API_KEY = readEnv("FIREBASE_API_KEY");
 
-export const Env = {
+export const env = {
   PORT,
 
   DATABASE_URL,
