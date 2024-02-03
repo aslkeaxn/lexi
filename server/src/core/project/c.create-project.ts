@@ -3,6 +3,7 @@ import { TDatabase } from "../../db";
 import { projectSchema } from "./schema";
 import { transaction } from "../../lib/transaction";
 import { ForbiddenError } from "../../errors";
+import { ProjectRole } from "@prisma/client";
 
 export function createProject(db: TDatabase) {
   return async function (req: Request, res: Response) {
@@ -29,6 +30,10 @@ export function createProject(db: TDatabase) {
           projectId: project.id,
           languageId,
         })),
+      });
+
+      await tx.roleOnProject.create({
+        data: { userId, projectId: project.id, role: ProjectRole.Owner },
       });
     });
 

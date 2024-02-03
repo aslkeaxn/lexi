@@ -4,6 +4,7 @@ import { testDb } from "../../utils/test-db";
 import { createUser } from "../../utils/create-user";
 import { req } from "../../utils/get-req";
 import { mockLanguages } from "../../utils/mock-languages";
+import { ProjectRole } from "@prisma/client";
 
 const url = constant.projectRoute;
 
@@ -24,7 +25,7 @@ describe.concurrent(`[POST] ${url}`, () => {
         .send(dto);
       const project = await tx.project.findFirst({
         where: { userId: user.id },
-        include: { languages: true },
+        include: { languages: true, userRoles: true },
       });
 
       expect(res.status).toBe(201);
@@ -32,6 +33,8 @@ describe.concurrent(`[POST] ${url}`, () => {
       expect(project?.languages.map((l) => l.languageId)).toEqual(
         dto.languageIds
       );
+      expect(project?.userRoles).length(1);
+      expect(project?.userRoles[0].role).toBe(ProjectRole.Owner);
     }),
     20000
   );
